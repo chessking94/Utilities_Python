@@ -1,0 +1,6 @@
+{
+	"logRoot": "C:/logs",
+	"logDelimiter": ",",
+	"fileproc_referenceFile": "C:/reference/directorymonitoring.csv",
+	"fileproc_referenceDelimiter": ","
+}
