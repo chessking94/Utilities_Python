@@ -3,7 +3,7 @@
 __name__ = 'Utilities_Python'
 __author__ = 'Ethan Hunt'
 __email__ = 'chessking94@gmail.com'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # globals
 NL = '\n'

@@ -51,6 +51,14 @@ def update_requirements():
     cmd_txt = f'pipreqs --force --savepath {ROOT_DIR}/requirements.txt {ROOT_DIR}/src'
     result = subprocess.run(cmd_txt, shell=True, capture_output=False, text=True)
 
+    # replace == with >=
+    with open(os.path.join(ROOT_DIR, 'requirements.txt'), 'r') as file:
+        lines = file.readlines()
+
+    with open(os.path.join(ROOT_DIR, 'requirements.txt'), 'w') as file:
+        for line in lines:
+            file.write(line.replace('==', '>='))
+
     cmd_txt = 'git diff --name-only'
     result = subprocess.run(cmd_txt, shell=True, capture_output=True, text=True)
 

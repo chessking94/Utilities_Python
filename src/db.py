@@ -28,6 +28,7 @@ class db:
     TODO
     ----
     Add general query execution stuff, will need injection defenses
+    Is it possible to stop using pandas in _is_job_running and GetLastProcessedID?
 
     """
     def __init__(self, connection_string: str = None):
@@ -222,3 +223,72 @@ WHERE job.name = '{job_name}'
         r = subprocess.run(cmd, shell=True, cwd=root_path)
 
         return r.returncode
+
+    def GetLastProcessedID(self, database: str, schema: str, table: str) -> int:
+        """Obtain a Last_ID value from the table HuntHome.dbo.LastProcessed
+
+        Parameters
+        ----------
+        database : str
+            Name of the database for the ID, maps to HuntHome.dbo.LastProcessed.Database_Name
+        schema : str
+            Name of the schema for the ID, maps to HuntHome.dbo.LastProcessed.Schema_Name
+        table : str
+            Name of the table for the ID, maps to HuntHome.dbo.LastProcessed.Table_Name
+
+        Returns
+        -------
+        int : the last ID value for the passed database, schema, and table
+
+        """
+        query = 'SELECT LastID FROM HuntHome.dbo.LastProcessed WHERE [Database_Name] = ? AND [Schema_Name] = ? AND [Table_Name] = ?'
+        try:
+            last_id = int(pd.read_sql(query, self.engine, coerce_float=False, params=(database, schema, table)).values[0][0])
+            return last_id
+        except Exception:
+            logging.error(f'unable to get ID value: {database}.{schema}.{table}')
+            return -1
+
+    def SetLastProcessedID(self, database: str, schema: str, table: str, id: int) -> bool:
+        """Sets a Last_ID value in table HuntHome.dbo.LastProcessed
+
+        If the record does not exist, it will be created. If it does, it will be updated.
+
+        Parameters
+        ----------
+        database : str
+            Name of the database for the ID, maps to HuntHome.dbo.LastProcessed.Database_Name
+        schema : str
+            Name of the schema for the ID, maps to HuntHome.dbo.LastProcessed.Schema_Name
+        table : str
+            Name of the table for the ID, maps to HuntHome.dbo.LastProcessed.Table_Name
+        id : int
+            Value of the ID
+
+        Returns
+        -------
+        bool : if the Set action succeeded
+
+        """
+        csr = self.conn.cursor()
+
+        check_query = 'SELECT 1 FROM HuntHome.dbo.LastProcessed WHERE [Database_Name] = ? AND [Schema_Name] = ? AND [Table_Name] = ?'
+        try:
+            csr.execute(check_query, database, schema, table)
+            exists = csr.fetchone()  # returns None if no record is found
+        except Exception:
+            logging.error(f'unable to set ID value: {database}.{schema}.{table} = {id}')
+            return False
+
+        if exists is None:
+            query = 'INSERT INTO HuntHome.dbo.LastProcessed ([Last_ID], [Database_Name], [Schema_Name], [Table_Name]) VALUES (?, ?, ?, ?)'
+        else:
+            query = 'UPDATE HuntHome.dbo.LastProcessed SET Last_ID = ? WHERE [Database_Name] = ? AND [Schema_Name] = ? AND [Table_Name] = ?'
+
+        try:
+            csr.execute(query, id, database, schema, table)
+            self.conn.commit()
+            return True
+        except Exception:
+            logging.error(f'unable to set ID value: {database}.{schema}.{table} = {id}')
+            return False
