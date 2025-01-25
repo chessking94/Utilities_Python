@@ -43,11 +43,12 @@ class db:
         self.engine = None
         self.conn = None
         self.connection_string = connection_string
-        self.connection_url = sa.engine.URL.create(
-            drivername='mssql+pyodbc',
-            query={"odbc_connect": connection_string}
-        )
         if self.connection_string:
+            self.connection_url = sa.engine.URL.create(
+                drivername='mssql+pyodbc',
+                query={"odbc_connect": connection_string}
+            )
+
             self.engine = sa.create_engine(self.connection_url)
             self.conn = self.engine.connect().connection
 
@@ -99,16 +100,11 @@ SELECT
 CASE WHEN act.stop_execution_date IS NULL THEN 1 ELSE 0 END AS is_running
 
 FROM msdb.dbo.sysjobs job
-JOIN msdb.dbo.sysjobactivity act ON
-    job.job_id = act.job_id
-JOIN msdb.dbo.syssessions sess ON
-    sess.session_id = act.session_id
-JOIN (
-    SELECT
-    MAX(agent_start_date) AS max_agent_start_date
-    FROM msdb.dbo.syssessions
-) sess_max ON
-    sess.agent_start_date = sess_max.max_agent_start_date
+INNER JOIN msdb.dbo.sysjobactivity act ON job.job_id = act.job_id
+INNER JOIN msdb.dbo.syssessions sess ON sess.session_id = act.session_id
+INNER JOIN (
+    SELECT MAX(agent_start_date) AS max_agent_start_date FROM msdb.dbo.syssessions
+) sess_max ON sess.agent_start_date = sess_max.max_agent_start_date
 
 WHERE job.name = '{job_name}'
     """
@@ -150,7 +146,7 @@ WHERE job.name = '{job_name}'
         is_running = True
         if wait_for_completion:
             while is_running:
-                time.sleep(10)
+                time.sleep(5)
                 is_running = self._is_job_running(job_name)
             logging.debug(f'SQL job "{job_name}" ended')
 
