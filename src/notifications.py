@@ -4,13 +4,15 @@ import os
 import requests
 
 
-def SendTelegramMessage(message: str) -> bool:
+def SendTelegramMessage(message: str, chat_id: int = None) -> bool:
     """Sends a message via Telegram
 
     Parameters
     ----------
     message : str
         The text of the message to send
+    chat_id : int (default None)
+        The ID value of the user to send the message to
 
     Returns
     -------
@@ -22,10 +24,11 @@ def SendTelegramMessage(message: str) -> bool:
         logging.error('Missing TelegramAPIKey environment variable')
         return False
 
-    chat_id = os.getenv('TelegramChatIDRelease')
     if chat_id is None:
-        logging.error('Missing TelegramChatID environment variable')
-        return False
+        chat_id = os.getenv('TelegramChatIDRelease')
+        if chat_id is None:
+            logging.error('Missing TelegramChatID environment variable')
+            return False
 
     url = f'https://api.telegram.org/bot{api_key}/sendMessage'
     params = {'chat_id': chat_id, 'text': message}
