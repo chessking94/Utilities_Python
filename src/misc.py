@@ -151,7 +151,11 @@ def initiate_logging(script_name: str, config_file: str, write_file: bool = True
     log_file = os.path.join(log_root, log_name)
     log_handlers = [logging.StreamHandler(sys.stdout)]
     if write_file or write_file not in BOOLEANS:
+        # sometimes appending the FileHandler to log_handlers fails, sometimes it doesn't. guessing it is a networking thing since it doesn't happen every time.
+        if not os.path.isfile(log_file):
+            open(log_file, 'a').close()
         log_handlers.append(logging.FileHandler(log_file))
+
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s\t%(funcName)s\t%(levelname)s\t%(message)s',
