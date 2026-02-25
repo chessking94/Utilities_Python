@@ -22,8 +22,8 @@ def last_release_version() -> str:
     else:
         last_release_file = max(release_files, key=lambda f: os.path.getmtime(os.path.join(release_dir, f)))
 
-        pattern = nm + r'-(\d{1,3}(?:\.\d{1,3}){0,2})\.tar\.gz'
-        match = re.search(pattern, last_release_file)
+        pattern = nm + r'-(\d+)\.(\d+)\.(\d+)\.tar\.gz'  # ApplicationName-#.#.#.tar.gz
+        match = re.search(pattern, last_release_file, re.IGNORECASE)
 
         if match:
             return match.group(1)
@@ -94,7 +94,7 @@ def main():
     logging.info('Build started')
 
     if verify_release():
-        update_requirements()
+        # update_requirements()
 
         build_cmd = 'py setup.py sdist'
         result = subprocess.run(build_cmd, shell=True, capture_output=True, text=True)

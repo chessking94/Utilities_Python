@@ -16,7 +16,8 @@ setup(
     package_dir={'Utilities_Python': 'src'},
     test_suite='test',
     install_requires=[
-        'pandas>=2.1.4',
-        'sqlalchemy>=2.0.27',
+        'pandas==3.0.1',
+        'requests==2.32.5',
+        'SQLAlchemy==2.0.47'
     ]
 )
