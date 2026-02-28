@@ -17,6 +17,7 @@ setup(
     test_suite='test',
     install_requires=[
         'pandas==3.0.1',
+        'pyodbc==5.3.0',
         'requests==2.32.5',
         'SQLAlchemy==2.0.47'
     ]
